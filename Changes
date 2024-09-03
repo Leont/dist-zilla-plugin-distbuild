@@ -1,6 +1,8 @@
 Revision history for Dist-Zilla-Plugin-DistBuild
 
 {{$NEXT}}
+
+0.002     2024-09-03 18:47:49+02:00 Europe/Brussels
           - Scan for Dist::Build dependencies
           - Add sharedir support
           - Rename default install type to heuristic
