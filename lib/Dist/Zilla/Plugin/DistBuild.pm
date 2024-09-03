@@ -40,8 +40,8 @@ around BUILDARGS => sub($orig, $class, @args) {
 
 has version_method => (
 	is      => 'ro',
-	isa     => enum(['installed', 'conservative']),
-	default => 'conservative',
+	isa     => enum(['installed', 'heuristic']),
+	default => 'heuristic',
 );
 
 has version => (
@@ -267,7 +267,7 @@ This attribute determines how the default minimum perl is detected. It has two p
 
 This will give the version installed on the author's perl installation.
 
-=item * conservative
+=item * heuristic
 
 This will return a heuristically determined minimum version of C<Dist::Build>.
 
