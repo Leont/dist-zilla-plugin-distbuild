@@ -186,8 +186,6 @@ BUILD_PL
 
 sub gather_files($self) {
 	if (my $file = first { $_->name eq 'Build.PL' } $self->zilla->files->@*) {
-		# if it's another type, some other plugin added it, so it's better to
-		# error out and let the developer sort out what went wrong.
 		if ($file->isa('Dist::Zilla::File::OnDisk')) {
 			$self->log('replacing existing Build.PL found in repository');
 			$self->zilla->prune_file($file);
@@ -205,9 +203,21 @@ sub gather_files($self) {
 }
 
 sub setup_installer($self) {
+	my $sharedir_file = '';
+
 	for my $map (map { $_->share_dir_map } $self->zilla->plugins_with(-ShareDir)->@*) {
-		$self->log_fatal('Unsupported use of a module sharedir') if exists $map->{module};
-		$self->log_fatal('Sharedir location must be share/') if defined $map->{dist} and $map->{dist} ne 'share';
+		$sharedir_file .= sprintf "dist_sharedir('%s');\n", quotemeta $map->{dist} if defined $map->{dist};
+		for my $module (keys %{ $map->{module} }) {
+			$sharedir_file .= sprintf "module_sharedir('%s', '%s');\n", $map->{module}{$module} =~ s{[\\']}{\\$1}gr, $module;
+		}
+	}
+
+	if (length $sharedir_file) {
+		my $file = Dist::Zilla::File::InMemory->new({
+			name    => 'planner/sharedir.pl',
+			content => "load_module('Dist::Build::ShareDir');\n" . $sharedir_file,
+		});
+		$self->add_file($file);
 	}
 
 	my $file = first { $_->name eq 'Build.PL' } $self->zilla->files->@*;
@@ -238,6 +248,8 @@ no Moose;
 =head1 DESCRIPTION
 
 This plugin will create a F<Build.PL> for installing the dist using L<Dist::Build|Dist::Build>.
+
+If needed it will also create a F<planner/sharedir.pl> file to integrate all sharedirs known to C<Dist::Zilla>.
 
 =attr version
 
