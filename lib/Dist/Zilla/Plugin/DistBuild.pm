@@ -7,6 +7,7 @@ with qw/
 	Dist::Zilla::Role::PrereqSource
 	Dist::Zilla::Role::FileGatherer
 /;
+use namespace::autoclean;
 
 use experimental 'signatures', 'postderef';
 
@@ -239,8 +240,7 @@ sub setup_installer($self) {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose::Util::TypeConstraints;
-no Moose;
+
 1;
 
 # ABSTRACT: Build a Build.PL that uses Dist::Build
