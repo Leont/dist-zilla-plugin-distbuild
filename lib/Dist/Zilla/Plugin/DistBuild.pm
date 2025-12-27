@@ -53,7 +53,7 @@ has version => (
 		if ($self->version_method eq 'installed') {
 			return Module::Metadata->new_from_module('Dist::Build')->version->stringify;
 		} else {
-			return '0.001';
+			return '0.019';
 		}
 	},
 );
@@ -204,19 +204,21 @@ sub gather_files($self) {
 }
 
 sub setup_installer($self) {
-	my $sharedir_file = '';
+	my @sharedir;
 
 	for my $map (map { $_->share_dir_map } $self->zilla->plugins_with(-ShareDir)->@*) {
-		$sharedir_file .= sprintf "dist_sharedir('%s');\n", quotemeta $map->{dist} if defined $map->{dist};
+		push @sharedir, sprintf "dist_sharedir('%s');", quotemeta $map->{dist} if defined $map->{dist};
 		for my $module (keys %{ $map->{module} }) {
-			$sharedir_file .= sprintf "module_sharedir('%s', '%s');\n", $map->{module}{$module} =~ s{[\\']}{\\$1}gr, $module;
+			push @sharedir, sprintf "module_sharedir('%s', '%s');", $map->{module}{$module} =~ s{[\\']}{\\$1}gr, $module;
 		}
 	}
 
-	if (length $sharedir_file) {
+	if (@sharedir) {
+		unshift @sharedir, "load_extension('Dist::Build::ShareDir');";
+		my $content = join '', map "$_\n", @sharedir;
 		my $file = Dist::Zilla::File::InMemory->new({
 			name    => 'planner/sharedir.pl',
-			content => "load_module('Dist::Build::ShareDir');\n" . $sharedir_file,
+			content => $content,
 		});
 		$self->add_file($file);
 	}
