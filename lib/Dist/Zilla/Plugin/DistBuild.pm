@@ -223,6 +223,17 @@ sub setup_installer($self) {
 		$self->add_file($file);
 	}
 
+	my @exedir = map { sprintf "script_dir('%s');", $_->dir } $self->zilla->plugins_with(-ExecFiles)->@*;
+	if (@exedir) {
+		unshift @exedir, "load_extension('Dist::Build::Core');";
+		my $content = join '', map "$_\n", @exedir;
+		my $file = Dist::Zilla::File::InMemory->new({
+			name    => 'planner/scriptdir.pl',
+			content => $content,
+		});
+		$self->add_file($file);
+	}
+
 	my $file = first { $_->name eq 'Build.PL' } $self->zilla->files->@*;
 	my $content = $file->content;
 
